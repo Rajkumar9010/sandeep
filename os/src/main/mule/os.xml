@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c9ec2d96-fee3-4b62-adee-89378e670c5a" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="d7b4d8ae-7bfd-451d-8bf0-3e0f88b905f2" />
+	<flow name="osFlow" doc:id="b8ab9bdb-f710-4e39-998e-303929c73b0c" >
+		<http:listener doc:name="Listener" doc:id="4762ee28-3979-473a-adae-9e5793e5a965" config-ref="HTTP_Listener_config" path="ob"/>
+		<set-variable value="#[attributes.queryParams.name]" doc:name="name" doc:id="6cc4dffa-bbdc-4f77-bc19-b7eb7daf451b" variableName="name"/>
+		<set-variable value="#[attributes.queryParams.id]" doc:name="id" doc:id="e38d0574-02bc-4752-a2e0-8faff09066cd" variableName="id"/>
+		<os:store doc:id="a74c2a6f-937e-472a-abcb-0e7c0a8933a8" key="#[vars.name]" objectStore="Object_store">
+			<os:value ><![CDATA[#[vars.id]]]></os:value>
+		</os:store>
+		<logger level="INFO" doc:name="Logger" doc:id="3b6005ad-45ee-4274-a0a3-69d89c991a6d" message="#[payload]"/>
+	</flow>
+	<flow name="osFlow1" doc:id="c3d6f638-81da-4203-b092-8fc8e811d939" >
+		<http:listener doc:name="Listener" doc:id="0da292df-6f3b-4e8a-a30b-2ffd2d52ef22" config-ref="HTTP_Listener_config" path="retrieve"/>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="902925f1-415b-41f1-bd7f-4e7a8b30924a" objectStore="Object_store"/>
+		<logger level="INFO" doc:name="Logger" doc:id="cbb1be73-0953-4c8c-a9a4-18436527fc13" message="#[payload]"/>
+	</flow>
+	<flow name="osFlow2" doc:id="30821840-b1e8-4a8b-9c3f-52665b3eec80" >
+		<http:listener doc:name="Listener" doc:id="edf60a77-0f36-48f9-84b9-824cf2342023" config-ref="HTTP_Listener_config" path="rall"/>
+		<os:retrieve-all-keys doc:name="Retrieve all keys" doc:id="43e9d161-6794-43a7-946a-930413b39240" objectStore="Object_store"/>
+		<logger level="INFO" doc:name="Logger" doc:id="b135c83f-eaa5-4011-9274-767d9fd27b4c" message="#[payload]"/>
+	</flow>
+	<flow name="osFlow3" doc:id="8204e272-b288-4fe9-8232-be2abed94a0b" >
+		<http:listener doc:name="Listener" doc:id="74dfd1ce-f872-4587-b4cb-09fa0e364f78" config-ref="HTTP_Listener_config" path="contains"/>
+		<os:contains doc:name="Contains" doc:id="93a5caf2-29a8-4372-8aeb-1f748ff6ca8a" key="#[attributes.queryParams.name]" objectStore="Object_store"/>
+		<ee:transform doc:name="Transform Message" doc:id="6b172387-378a-4461-b8ab-15841d0adce7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="osFlow4" doc:id="566f55b4-385a-4b32-a1e0-0f0ef10d530c" >
+		<http:listener doc:name="Listener" doc:id="6083a1d4-5795-4b32-8037-927a95835e0f" config-ref="HTTP_Listener_config" path="remove"/>
+		<os:remove doc:name="Remove" doc:id="8bef75ac-0f72-467b-9376-ab583ffeddf1" key="#[attributes.queryParams.name]" objectStore="Object_store"/>
+	</flow>
+	<flow name="osFlow5" doc:id="e084caae-cd5c-44dd-af1e-e90692e8469a" >
+		<http:listener doc:name="Listener" doc:id="78202ae0-ee1f-4f15-92f4-f941c6696531" config-ref="HTTP_Listener_config" path="clear"/>
+		<os:clear doc:name="Clear" doc:id="af2b7e86-ab3f-42fa-b6af-d107e610cc55" objectStore="Object_store"/>
+	</flow>
+</mule>
